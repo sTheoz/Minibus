@@ -1,23 +1,17 @@
-MINIBUS
-par Dimitri Watel, Copyright, 2019
+NOM DU JEU
+par NOM DE L'AUTEUR
 
-Requis: 
-- java8, en JRE ou JDK, 
-- php7.3, 
-- l'extension JSON de php (https://www.php.net/manual/fr/json.installation.php)
-- l'extension mbString de php (https://www.php.net/manual/fr/mbstring.installation.php)
-- un navigateur acceptant d'exécuter du javascript 
-- optionnel : python3 pour pouvoir lancer un IA codée en python3
+Requis: java8, php, un navigateur acceptant d'exécuter du javascript (optionnel : python3 pour pouvoir lancer une des IA codée en python3)
 
 Lancement :
-- extraire tous les fichiers dans un dossier (pour l'exemple, on l'appelera minibus)
-- aller dans le dossier minibus
+- extraire tous les fichiers dans un dossier (pour l'exemple, on l'appelera NOM DU JEU)
+- aller dans le dossier NOM DU JEU
 
 Pour avoir de l'aide:
-- java -jar minibus.jar -h
+- java -jar NOM DU JEU.jar -h
 
 Pour tester
-- java -jar minibus.jar -b1
+- java -jar NOM DU JEU.jar -b1 -b2 -b3 
 - cd html
 - php -S localhost:8888 &
 - firefox index.php
