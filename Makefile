@@ -24,7 +24,7 @@ ligueIA/monIA.o : ligueIA/monIA.c
 all : monIA
 
 monIA : $(IA_OFILES)
-	$(CC) $(CFLAGS) -o ligueIA/monIA $(IA_OFILES)
+	$(CC) $(CFLAGS) -o ligueIA/monIA $(IA_OFILES) -lm
 
 #CHAPITRE 5 : NETTOYAGE DES FICHIERS GENERES
 
@@ -32,9 +32,9 @@ clean :
 	-rm -f $(IA_OFILES)
 
 play :
-	java -jar minibus.jar -b2 C:ligueIA/monIA;\
+	java -jar minibus.jar -b2 -ld -li -lo C:ligueIA/monIA;\
 	cd html;\
-	php -S localhost:8888
+	php -S localhost:8888 &
 
 #CHAPITRE 6 : BUTS FACTICES
 
