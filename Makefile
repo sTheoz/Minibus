@@ -32,7 +32,7 @@ clean :
 	-rm -f $(IA_OFILES)
 
 play :
-	java -jar minibus.jar -b2 -ld -li -lo C:ligueIA/monIA;\
+	java -jar minibus.jar -b1 -ld -li -lo C:ligueIA/monIA;\
 	cd html;\
 	php -S localhost:8888 &
 

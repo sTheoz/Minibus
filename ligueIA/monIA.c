@@ -2,6 +2,23 @@
 #include<stdio.h>
 #include<math.h>
 
+struct nb_traveler_by_station
+{
+    int id_station;
+    int nb;
+    struct station* next_station;
+};
+
+struct traveler
+{
+    int id_traveler;
+    int available;
+    int id_station_dest;
+    int id_station_pop;
+    struct traveler* next_traveler;
+};
+
+
 struct station
 {
     int id;
@@ -45,16 +62,20 @@ ou sinon tab[i] pointe sur une structure*/
 int add_station(int id, int capacity, int x, int y);
 int add_player(int id, int money, int size, int speed, int cost, int end);
 int add_bus(int id, int player, int x, int y, int destination, int size);
-int play();
+int add_traveler(int id_traveler, int id_station_pop, int id_station_dest);
+int play(int my_money);
 int play_first(int station);
 int search_station(int turn);
+int buy_bus();
+
 
 
 struct station list_station;
 struct player list_player;
+struct traveler list_traveler;
 
 int main(void){
-    int nb_joueur, mon_numero, mon_argent=0;
+    int nb_joueur, my_numero, my_money=0;
     int ID, X , Y , K;
     int j, m, usb, usp, uct, end;
     int ns;
@@ -65,12 +86,16 @@ int main(void){
     int idb;
 
     int num_station;
+    int* my_nb_bus;
 
     list_station.id=-1;
     list_player.id = -1;
+    list.traveler.id=-1;
+
+    my_nb_bus = (int*)malloc(sizeof(int));
 
     //Premier tour 
-    scanf("%d %d",&nb_joueur, &mon_numero);
+    scanf("%d %d",&nb_joueur, &my_numero);
     //Récupération des stations
     for(int i = 0 ; i < 3 ; i++){
         scanf("%d %d %d %d",&ID,&X,&Y,&K);
@@ -104,7 +129,7 @@ int main(void){
                 return 1;
             }
             //fprintf(stderr, "J %d m %d  Usb %d usp %d uct %d end %d\n",j,m,usb,usp, uct,end );
-            if(j == mon_numero)mon_argent=m;
+            if(j == my_numero)my_money=m;
         }
         /*
         *@var ns variable qui sert à savoir si une station a été créée
@@ -119,8 +144,7 @@ int main(void){
                 fprintf(stderr,"Error modification station...");
                 return 2;
             }
-            //Il faut créer une station
-            fprintf(stderr,"Creation station : %d %d %d %d\n",ID,X,Y,K);
+            //fprintf(stderr,"Creation station : %d %d %d %d\n",ID,X,Y,K);
         }
 
         //La variable nbus permet de savoir combien de bus sont actuellement en partie
@@ -140,34 +164,58 @@ int main(void){
 
         //Informations sur les new voyageurs, ceux qui sont montés au tour précédent et ceux qui sont descendu
         scanf("%d %d %d",&nt, &bt, &dt);
+
+
         //Informations sur les new voyageurs
         for(int i=0 ; i < nt ; i++){
             scanf("%d %d %d",&idt, &ids1, &ids2);
+            if( add_traveler(idt,ids1, ids2) != 0){
+                fprintf(stderr,"Error add traveler...");
+                return 4;
+            }
         }
         //fprintf(stderr, "idt%d ids1 %d ids2 %d\n",idt,ids1,ids2);
         //Informations des voyageurs montés dans un bus
         for(int i=0; i < bt ; i++){
             scanf("%d %d",&idt, &idb);
+            //Vérifier si le bus est le notre
+            //Changer le flag available du voyageur et diminuer de 1 le nombre de personne de la station
         }
         //fprintf(stderr, "idt %d idb %d\n",idt, idb);
         //Information des voyageurs étant descendu d'un bus
         for(int i=0; i < dt ; i++){
             scanf("%d",&idt);
+            //Supprimer le voyageur de la liste chainée et faire un free
         }
         //fprintf(stderr, "idt%d\n",idt);
         //printf("PASS\n");
         fflush(stdout);
         fflush(stdin);
-        play();
+        play(my_money, my_nb_bus);
     }
     return 0;
 }
 
-int play(){
+int play(int my_money, int* my_nb_bus){
     //Appels des fonctions
+    //Pour acheter un bus il faut 100$ et pas plus de 4 bus
+    //Si on a acheté un bus alors on ne peut pas agrandir ce bus
+    //buy_bus renvoie le numéro du bus acheté
+    int num_bus;
+
+    if(*my_nb_bus < 4 && my_money >= 100){
+        num_bus=buy_bus();
+    }
+
     printf("PASS\n");
     return 0;
 }
+
+int buy_bus(){
+    int num_bus = 0;
+    return num_bus;
+}
+
 int play_first(int station){
     printf("BUS %d ; PASS\n", station);
     return 0;
@@ -288,5 +336,10 @@ int add_player(int id, int money, int size, int speed, int cost, int end){
 }
 
 int add_bus(int id, int player, int x, int y, int destination, int size){
+    return 0;
+}
+
+int add_traveler(int id_traveler, int id_station_pop, int id_station_dest){
+    
     return 0;
 }
