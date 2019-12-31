@@ -7,7 +7,7 @@ IA_OFILES = ligueIA/monIA.o
 
 CC = gcc
 
-CFLAGS = -Wall -pedantic -g
+CFLAGS = -Wall -Wextra -std=c99
 
 # CHAPITRE 3 : DEPENDANCES (REGLES IMPLICITES)
 
@@ -27,9 +27,9 @@ clean :
 	-rm -f $(IA_OFILES)
 
 play :
-	java -jar minibus.jar -b3 -ld -li -lo C:ligueIA/monIA;\
+	java -jar minibus.jar -b3 -ld -li -lo C:ligueIA/monIA C:ligueIA/;\
 	cd html;\
-	php -S localhost:8888
+	php7.3 -S localhost:8888
 
 help :
 	clear;\
