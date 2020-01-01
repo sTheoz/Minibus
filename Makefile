@@ -27,7 +27,7 @@ clean :
 	-rm -f $(IA_OFILES)
 
 play :
-	java -jar minibus.jar -b3 -ld -li -lo C:ligueIA/monIA C:ligueIA/IA_LEANNA;\
+	java -jar minibus.jar -b3 -ld -lo C:ligueIA/monIA C:ligueIA/IA_LEANNA;\
 	cd html;\
 	php7.3 -S localhost:8888
 

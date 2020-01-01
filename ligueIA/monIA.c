@@ -2,12 +2,7 @@
 #include<stdio.h>
 #include<math.h>
 #include<unistd.h>
-/*
-#define MAX_PASSENGER_GETTING_OFF_BUSS 5
-#define NOMBRE_MAX_STATIONS 10
-#define NOMBRE_STATIONS_DEBUT 3
-#define MAX_SIZE_COMMAND_NAME 20
-#define MAX_SIZE_COMMANDS 20*/
+
 #define PRICE_BUS 100
 #define PRICE_SIZE_BUS 50
 #define PRICE_UPGRADE_SB 100
@@ -93,22 +88,20 @@ void add_player(int id, int money, int size, int speed, int cost, int end);
 void add_bus(int id, int player, int x, int y, int destination, int size);
 void add_traveler(int id_traveler, int id_station_pop, int id_station_dest);
 void increment_station(int pop_station, int dest_station);
-int play(struct state_upgrade* s_upgrade);
+void play(struct state_upgrade* s_upgrade);
 void play_first(int station);
 int search_station_with_max_traveler();
 void buy_bus();
 void bye_traveler(int id_traveler);
 int is_my_bus(int id_bus);
-int disable_traveler(int id_traveler);
+void disable_traveler(int id_traveler);
 int decrement_station(int station_pop, int station_dest);
-int go_to_station();
 void buy_price();
 void buy_speed();
-int clear_goto_station();
 void disable_station(int station);
 int is_available_bus(struct bus* bus);
 int get_destination_by_traveler(int id_traveler);
-int add_traveler_to_bus(int idt,int idb);
+void add_traveler_to_bus(int idt,int idb);
 int is_my_traveler(int id_traveler);
 void get_first_info();
 void get_infos(struct state_upgrade* s_upgrade, int nb_joueur);
@@ -143,8 +136,6 @@ int main(void){
     while(1){
         turn++;
         get_infos(s_upgrade, nb_joueur);
-        
-        fprintf(stderr,"Mon argent : %d\n",s_upgrade->money);
         if(turn == 1){
             play_first(search_station_by_location());
         }else{
@@ -155,12 +146,12 @@ int main(void){
     return 0;
 }
 
-int play(struct state_upgrade* s_upgrade){
+void play(struct state_upgrade* s_upgrade){
     buy_upgrade(s_upgrade);
     //go_to_station(s_upgrade->my_id);
     deplacement();
     printf("PASS\n");
-    return 0;
+    return;
 }
 
 void deplacement(){
@@ -439,19 +430,18 @@ void increment_station(int pop_station, int dest_station){
 }
 
 //Rendre non disponible un voyageur
-int disable_traveler(int id_traveler){
+void disable_traveler(int id_traveler){
     struct traveler* current_traveler;
     current_traveler = list_traveler;
     while( current_traveler != NULL && current_traveler->next_traveler != NULL && current_traveler->id_traveler != id_traveler ){
         current_traveler = current_traveler->next_traveler;
     }
-    if(current_traveler == NULL)return 0;
+    if(current_traveler == NULL)return;
     if(current_traveler->id_traveler == id_traveler){
         current_traveler->available = 0;
         decrement_station(current_traveler->id_station_pop, current_traveler->id_station_dest);      
-        return 0;
+        return;
     }
-    return 1;//Aucun voyageur avec cet id a été trouvé
 }
 
 //Réduit le nombre de voyageur dans la station de départ et la destination de 1 dans la station de destination
@@ -489,7 +479,7 @@ int is_my_bus(int id_bus){
     return 0;
 }
 
-void print_traveler(){
+/*void print_traveler(){
     struct my_traveler* current_traveler  = list_my_traveler;
     while (current_traveler != NULL){
         fprintf(stderr,"Voyag %d\n",current_traveler->id);
@@ -499,11 +489,10 @@ void print_traveler(){
             break;
         }
     }
-}
+}*/
 
 void bye_traveler(int id_traveler){
     if( is_my_traveler(id_traveler) == 0 )return;
-    fprintf(stderr,"Je veux supprimer %d\n",id_traveler);
     struct my_traveler* current_traveler  = list_my_traveler;
     struct my_traveler* previous_traveler = list_my_traveler;
     if(current_traveler->id == id_traveler){
@@ -524,7 +513,6 @@ void bye_traveler(int id_traveler){
     }else{
         previous_traveler->next_traveler = current_traveler->next_traveler;
     }
-    fprintf(stderr,"Suppression du voyageur %d\n",id_traveler);
     //free(current_traveler);
 }
 
@@ -563,16 +551,6 @@ void able_station(int station){
     return;
 }
 
-int clear_goto_station(){
-    struct nb_traveler_by_station* current_station = list_nb_station;
-    current_station->bus_go_to = 0;
-    while(current_station->next_station != NULL){
-        current_station = current_station->next_station;
-        current_station->bus_go_to = 0;
-    }
-    return 0;
-}
-
 int is_available_bus(struct bus* bus){
     if(bus->busy <= 0)return bus->busy;
     int bus_destination = bus->destination;
@@ -588,30 +566,24 @@ int is_available_bus(struct bus* bus){
     return bus->busy;
 }
 
-int add_traveler_to_bus(int idt,int idb){
+void add_traveler_to_bus(int idt,int idb){
     struct my_traveler* traveler = list_my_traveler;
     int idd;
     idd = get_destination_by_traveler(idt);
-    
+    struct my_traveler* new_traveler;
+    new_traveler = (struct my_traveler*) malloc(sizeof(struct my_traveler));
+    new_traveler->id = idt;
+    new_traveler->id_bus = idb;
+    new_traveler->id_destination = idd;
     if(traveler == NULL){
-        struct my_traveler* new_traveler;
-        new_traveler = (struct my_traveler*) malloc(sizeof(struct my_traveler));
-        new_traveler->id = idt;
-        new_traveler->id_bus = idb;
-        new_traveler->id_destination = idd;
         list_my_traveler = new_traveler;
     }else{
         while(traveler->next_traveler != NULL){
             traveler = traveler->next_traveler;
-        }
-        struct my_traveler* new_traveler;
-        new_traveler = (struct my_traveler*) malloc(sizeof(struct my_traveler));
+        } 
         traveler->next_traveler=new_traveler;
-        new_traveler->id = idt;
-        new_traveler->id_bus = idb;
-        new_traveler->id_destination = idd;
     }
-    return 0;
+    return;
 }
 
 int get_destination_by_traveler(int id_traveler){
@@ -631,63 +603,80 @@ void get_first_info(){
     return;
 }
 
-void get_infos(struct state_upgrade* s_upgrade, int nb_joueur){
+void update_player(struct state_upgrade* s_upgrade, int nb_joueur){
     int j,m,usb,usp,uct,end;
-    int ns,nbus,ID,X,Y,K,A,S;
-    int nt, bt, dt, idt, ids1, ids2, idb;
     for(int i = 0 ; i < nb_joueur ; i++){//Informations sur tous les joueurs ! argent, amélioration de sb, sp et ct      
-            scanf("%d %d %d %d %d %d", &j, &m, &usb, &usp, &uct, &end);
-            if(j == s_upgrade->my_id){
-                s_upgrade->sb = usb;
-                s_upgrade->sp = usp;
-                s_upgrade->ct = uct;
-                s_upgrade->money = m;
-                if(end == 1){
-                    game_over();
-                }
-            }else{
-                add_player(j,m,usb, usp, uct, end);
-            } 
-        }
-  
-        scanf("%d",&ns);//ns variable qui sert à savoir si une station a été créée
-        if(ns == 1){//Création d'une nouvelle station
-            scanf("%d %d %d %d",&ID,&X,&Y,&K);
-            add_station(ID, K, X, Y);
-        }
-
-        scanf("%d",&nbus);//La variable nbus permet de savoir combien de bus sont actuellement en partie
-        //Cette boucle for permet de récupérer toutes les données des bus actuellement en partie
-        for(int i = 0 ; i < nbus ; i++){
-            scanf("%d %d %d %d %d %d",&ID, &j, &X, &Y, &A, &S);
-            if(j == s_upgrade->my_id){
-                add_bus(ID,j,X,Y,A,S);
+        scanf("%d %d %d %d %d %d", &j, &m, &usb, &usp, &uct, &end);
+        if(j == s_upgrade->my_id){
+            s_upgrade->sb = usb;
+            s_upgrade->sp = usp;
+            s_upgrade->ct = uct;
+            s_upgrade->money = m;
+            if(end == 1){
+                game_over();
             }
+        }else{
+            add_player(j,m,usb, usp, uct, end);
+        } 
+    }
+}
+void update_station(){
+    int ID,X,Y,K,ns;
+    scanf("%d",&ns);//ns variable qui sert à savoir si une station a été créée
+    if(ns == 1){//Création d'une nouvelle station
+        scanf("%d %d %d %d",&ID,&X,&Y,&K);
+        add_station(ID, K, X, Y);
+    }
+}
+void update_bus(struct state_upgrade* s_upgrade){
+    int nbus,ID,X,Y,A,S,j;
+    scanf("%d",&nbus);//La variable nbus permet de savoir combien de bus sont actuellement en partie
+    //Cette boucle for permet de récupérer toutes les données des bus actuellement en partie
+    for(int i = 0 ; i < nbus ; i++){
+    scanf("%d %d %d %d %d %d",&ID, &j, &X, &Y, &A, &S);
+    if(j == s_upgrade->my_id){
+        add_bus(ID,j,X,Y,A,S);
         }
+    }
+}
+void update_new_traveler(int nt){
+    int idt, ids1, ids2;
+    //Informations sur les new voyageurs, ceux qui sont montés au tour précédent et ceux qui sont descendu
+    for(int i=0 ; i < nt ; i++){
+        scanf("%d %d %d",&idt, &ids1, &ids2);
+        add_traveler(idt,ids1, ids2);
+        increment_station(ids1,ids2);
+    }
+}
 
-        //Informations sur les new voyageurs, ceux qui sont montés au tour précédent et ceux qui sont descendu
-        scanf("%d %d %d",&nt, &bt, &dt);
-        for(int i=0 ; i < nt ; i++){
-            scanf("%d %d %d",&idt, &ids1, &ids2);
-            add_traveler(idt,ids1, ids2);
-            increment_station(ids1,ids2);
+void update_traveler_go_in_bus(int bt){
+//Informations des voyageurs montés dans un bus
+    int idt,idb;
+    for(int i=0; i < bt ; i++){
+        scanf("%d %d",&idt, &idb);
+        disable_traveler(idt);//On met le voyageur comme indisponible et on réduit les informations liés à ce voyageur
+        if(is_my_bus(idb) == 1){//Si c'est notre bus alors on va incrémenter le nb de voyageur dans notre bus
+            add_traveler_to_bus(idt,idb);
         }
-
-        //Informations des voyageurs montés dans un bus
-        for(int i=0; i < bt ; i++){
-            scanf("%d %d",&idt, &idb);
-            //Vérifier si le bus est le notre
-            disable_traveler(idt);//On met le voyageur comme indisponible et on réduit les informations liés à ce voyageur
-            if(is_my_bus(idb) == 1){//Si c'est notre bus alors on va incrémenter le nb de voyageur dans notre bus
-                add_traveler_to_bus(idt,idb);
-            }
-        }
-
-        //Information des voyageurs étant descendu d'un bus
-        for(int i=0; i < dt ; i++){
-            scanf("%d",&idt);
-            bye_traveler(idt);
-        }
+    }
+}
+void update_traveler_go_out_bus(int dt){
+//Information des voyageurs étant descendu d'un bus
+    int idt;
+    for(int i=0; i < dt ; i++){
+        scanf("%d",&idt);
+        bye_traveler(idt);
+    }
+}
+void get_infos(struct state_upgrade* s_upgrade, int nb_joueur){
+    int nt, bt, dt;
+    update_player(s_upgrade,nb_joueur);
+    update_station();    
+    update_bus(s_upgrade);
+    scanf("%d %d %d",&nt, &bt, &dt); 
+    update_new_traveler(nt);
+    update_traveler_go_in_bus(bt);
+    update_traveler_go_out_bus(dt);      
 }
 
 void buy_upgrade(struct state_upgrade* s_upgrade){
