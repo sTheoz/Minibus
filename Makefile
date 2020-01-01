@@ -1,9 +1,9 @@
 # CHAPITRE 1 : BUT FINAL
 
-but : monIA
+but : ST
 
 # CHAPITRE 2 : VARIABLES
-IA_OFILES = ligueIA/monIA.o
+IA_OFILES = ligueIA/ST.o
 
 CC = gcc
 
@@ -11,13 +11,13 @@ CFLAGS = -Wall -Wextra -std=c99
 
 # CHAPITRE 3 : DEPENDANCES (REGLES IMPLICITES)
 
-ligueIA/monIA.o : ligueIA/monIA.c
+ligueIA/ST.o : ligueIA/ST.c
 
 #CHAPITRE 4 : DEPENDANCES AVEC COMMANDES
 
-all : monIA
+all : ST
 
-monIA : $(IA_OFILES)
+ST : $(IA_OFILES)
 	$(CC) $(CFLAGS) -o ligueIA/$@ $^ -lm
 
 
@@ -27,7 +27,7 @@ clean :
 	-rm -f $(IA_OFILES)
 
 play :
-	java -jar minibus.jar -b2 -ld -lo C:ligueIA/monIA C:ligueIA/IA_LEANNA;\
+	java -jar minibus.jar -b2 -ld -lo C:ligueIA/ST C:ligueIA/IA_LEANNA;\
 	cd html;\
 	php7.3 -S localhost:8888
 
