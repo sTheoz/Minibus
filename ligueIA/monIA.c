@@ -112,7 +112,8 @@ int count_dest_by_dest_and_by_bus( int id_bus,int id_destination);
 void able_station(int station);
 void game_over();
 int count_traveler_by_bus( int id_bus );
-int search_station_by_location();
+int search_station_first_turn();
+int search_station_by_location(struct bus* bus);
 
 
 struct station* list_station;
@@ -137,7 +138,7 @@ int main(void){
         turn++;
         get_infos(s_upgrade, nb_joueur);
         if(turn == 1){
-            play_first(search_station_by_location());
+            play_first(search_station_first_turn());
         }else{
             play(s_upgrade);
         }
@@ -148,7 +149,6 @@ int main(void){
 
 void play(struct state_upgrade* s_upgrade){
     buy_upgrade(s_upgrade);
-    //go_to_station(s_upgrade->my_id);
     deplacement();
     printf("PASS\n");
     return;
@@ -159,10 +159,10 @@ void deplacement(){
     int station_selected;
     while( current_bus != NULL ){
         if( is_available_bus(current_bus) <= 0){
-            if( (station_selected = deliver_traveler(current_bus) ) != -1 && count_traveler_by_bus(current_bus->id) > ( (current_bus->size * 5) /2 ) ){
+            if( (station_selected = deliver_traveler(current_bus) ) != -1 ){
                 printf("DESTINATION %d %d;",current_bus->id, station_selected);
                 disable_station(station_selected);
-                current_bus->busy = 2;
+                current_bus->busy = 3;
             }else{
                 station_selected = search_station_with_max_traveler();
                 printf("DESTINATION %d %d;",current_bus->id, station_selected);
@@ -191,7 +191,7 @@ void play_first(int station){
     printf("BUS %d;PASS\n", station);
 }
 
-int search_station_by_location(){
+int search_station_first_turn(){
     int d1_2, d1_0, d2_0;
     //Calcul de la distance entre la station 0 et la station 1
     d1_0 = (list_station->x-list_station->next->x)*(list_station->x-list_station->next->x) + (list_station->y-list_station->next->y)*(list_station->y-list_station->next->y);
@@ -229,7 +229,7 @@ int search_station_with_max_traveler(){
     //Les autres tours
     struct nb_traveler_by_station* current_station = list_nb_station;
     if(current_station == NULL){
-        return 0;
+        return list_station->id;
     }
     int station_with_better_traveler = current_station->id_station;
     int max_w_traveler = current_station->nb_waiting_traveler;
@@ -272,6 +272,45 @@ void add_station(int id, int capacity, int x, int y){
         current_station->next = new_station;
     }
     return;
+}
+
+struct station* get_station_by_id(int id_station){
+    struct station* station = list_station;
+    while(station != NULL && station->id != id_station){
+        station = station->next;
+    }
+    return station;
+}
+
+int distance(struct bus* bus, struct station* station){
+    return (int) sqrt(pow(bus->x - station->x, 2) + pow(bus->y - station->y, 2) );
+}
+
+int search_station_by_location(struct bus* bus){
+    struct station** stations;
+    int i=0,best_station,j=0,dist,best_dist;
+    struct my_traveler* current_traveler = list_my_traveler;
+    stations = (struct station**) malloc( sizeof(struct station**) * bus->size * 5);
+    while(current_traveler != NULL){
+        if(current_traveler->id_bus == bus->id){
+            stations[i] = get_station_by_id(current_traveler->id_destination);
+            i++;
+        }
+        current_traveler = current_traveler->next_traveler;
+    }
+    if(stations[0] == NULL)return -1;
+    best_dist = distance(bus, stations[0]);
+    best_station = stations[0]->id;
+    while(j < (bus->size * 5) && stations[j] != NULL){
+        dist = distance(bus,stations[j]);
+        
+        if( dist < best_dist ){
+            best_station = stations[j]->id;
+            best_dist = dist;
+        }
+        j++;
+    }
+    return best_station;
 }
 
 //Ajoute au premier tour un joueur et modifie les valeurs à chaque tour
@@ -378,22 +417,21 @@ void add_traveler(int id_traveler, int id_station_pop, int id_station_dest){
 
 void increment_station(int pop_station, int dest_station){
     struct nb_traveler_by_station* current_station;
+    struct nb_traveler_by_station* new_station;
     current_station = list_nb_station;
     while(current_station != NULL && (current_station->next_station != NULL && current_station->id_station != pop_station) ){
         current_station = current_station->next_station;
     }
+    new_station = (struct nb_traveler_by_station*)malloc(sizeof(struct nb_traveler_by_station));
     //Augmente le nombre de voyageurs qu'il y a dans la station d'apparition
     if(current_station == NULL){
-        struct nb_traveler_by_station* new_station = (struct nb_traveler_by_station*)malloc(sizeof(struct nb_traveler_by_station));
         new_station->id_station = pop_station;
         new_station->nb_waiting_traveler = 1;
         new_station->next_station = NULL;
         new_station->bus_go_to = 0;
         list_nb_station = new_station;
     }else{
-        struct nb_traveler_by_station* new_station;
         if(pop_station != current_station->id_station){
-            new_station = (struct nb_traveler_by_station*)malloc(sizeof(struct nb_traveler_by_station));
             current_station->next_station = new_station;
             new_station->id_station = pop_station;
             new_station->nb_waiting_traveler = 0;
@@ -685,7 +723,7 @@ void buy_upgrade(struct state_upgrade* s_upgrade){
         s_upgrade->nb_bus = s_upgrade->nb_bus + 1;
         s_upgrade->money = s_upgrade->money - 100;
     }
-    if(s_upgrade->money >= PRICE_UPGRADE_CT && s_upgrade->ct < MAX_INCREASE_CT){
+    if(s_upgrade->money >= PRICE_UPGRADE_CT && s_upgrade->ct < MAX_INCREASE_CT && s_upgrade->sp == MAX_INCREASE_SP){
         buy_price();
         s_upgrade->money = s_upgrade->money - 100;
     }
@@ -696,8 +734,9 @@ void buy_upgrade(struct state_upgrade* s_upgrade){
 }
 
 int deliver_traveler(struct bus* bus){
-    struct my_traveler* current_traveler = list_my_traveler;
     int best_station = -1;
+    /*
+    struct my_traveler* current_traveler = list_my_traveler;
     int count_dest, count_max=0;
     while(current_traveler != NULL){
         if(current_traveler->id_bus == bus->id){
@@ -709,6 +748,8 @@ int deliver_traveler(struct bus* bus){
         }
         current_traveler = current_traveler->next_traveler;
     }
+    */
+    if(list_my_traveler != NULL)best_station = search_station_by_location(bus);
     return best_station;
 }
 
