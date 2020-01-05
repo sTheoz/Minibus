@@ -19,6 +19,7 @@ Si le bus était vide alors il ne reste qu'un seul tour afin de récupérer les 
 #include<math.h>
 #include<unistd.h>
 
+
 #define PRICE_BUS 100
 #define PRICE_SIZE_BUS 50
 #define PRICE_UPGRADE_SB 100
@@ -98,7 +99,7 @@ struct bus
     int busy;
     struct bus* next;
 };
-
+//Declaration des fonctions
 void get_first_info();
 void get_infos(struct state_upgrade* s_upgrade, int nb_joueur);
 void deplacement();
@@ -164,6 +165,7 @@ int main(void){
     return 0;
 }
 
+//Fait jouer l'IA à tous les tours sauf le premier
 void play(struct state_upgrade* s_upgrade){
     buy_upgrade(s_upgrade);
     deplacement();
@@ -196,22 +198,25 @@ void deplacement(){
     }
 }
 
+//Achète l'amélioration CT
 void buy_price(){
     printf("UPDATECT;");
 }
 
+//Achète l'amélioration SP
 void buy_speed(){
     printf("UPDATESP;");
 }
 
+//Achète un bus et le dépose sur la station avec le plus de voyageur
 void buy_bus(){
     printf("BUS %d;", search_station_with_max_traveler());
 }
-
+//Fait jouer l'IA pour le premier tour et achète donc un bus
 void play_first(int station){
     printf("BUS %d;PASS\n", station);
 }
-
+//Renvoie la station qui est la plus proche des deux autres stations
 int search_station_first_turn(){
     int d1_2, d1_0, d2_0;
     //Calcul de la distance entre la station 0 et la station 1
@@ -242,9 +247,7 @@ int search_station_first_turn(){
 }
 
 /**
- * Fonction qui cherche la meilleure station pour mettre le BUS que l'on va acheter
- * @var turn : le numéro du tour en cours pour savoir si 
- * l'on va prendre en compte les voyageurs qu'il y a dans les stations ou non
+ * Fonction qui cherche la station avec le plus de voyageur
  * */
 int search_station_with_max_traveler(){
     //Les autres tours
@@ -264,6 +267,7 @@ int search_station_with_max_traveler(){
     return station_with_better_traveler; 
 }
 
+//Ajoute une station dans la liste chaînée list_station
 void add_station(int id, int capacity, int x, int y){
     struct station* new_station;
     struct station* current_station = list_station;
@@ -273,7 +277,6 @@ void add_station(int id, int capacity, int x, int y){
         current_station = current_station->next;
     }
 
-    //Si id = -1 alors c'est la première du maillon
     if( current_station == NULL ){
         new_station = (struct station*) malloc(sizeof(struct station));
         new_station->id = id;
@@ -293,6 +296,7 @@ void add_station(int id, int capacity, int x, int y){
     return;
 }
 
+//Renvoie la station correpondant à son id
 struct station* get_station_by_id(int id_station){
     struct station* station = list_station;
     while(station != NULL && station->id != id_station){
@@ -301,10 +305,13 @@ struct station* get_station_by_id(int id_station){
     return station;
 }
 
+//Renvoie la distance entre un bus et une station
 int distance(struct bus* bus, struct station* station){
     return (int) sqrt(pow(bus->x - station->x, 2) + pow(bus->y - station->y, 2) );
 }
 
+//Renvoie la station la plus proche d'un bus
+//Cette station possède des voyageurs du bus voulant y aller
 int search_station_by_location(struct bus* bus){
     struct station** stations;
     int i=0,best_station,j=0,dist,best_dist;
@@ -367,6 +374,7 @@ void add_player(int id, int money, int size, int speed, int cost, int end){
     return;
 }
 
+//Ajoute un bus à la liste chaînée list_bus ou met à jour les informations
 void add_bus(int id, int player, int x, int y, int destination, int size){
     struct bus* current_bus = list_bus;
      struct bus* new_bus;
@@ -402,7 +410,7 @@ void add_bus(int id, int player, int x, int y, int destination, int size){
     } 
     return;
 }
-
+//Ajoute un voyageur dans la liste chaînée list_traveler ou met à jour les informations
 void add_traveler(int id_traveler, int id_station_pop, int id_station_dest){
     struct traveler* current_traveler;
     struct traveler* new_traveler;
@@ -433,7 +441,8 @@ void add_traveler(int id_traveler, int id_station_pop, int id_station_dest){
     }
     return;
 }
-
+//Augmente les nombres de voyageurs voulant arriver à une station et partant d'une station
+//La structure connait donc le nombre de personne attendant et voulant venir dans les stations
 void increment_station(int pop_station, int dest_station){
     struct nb_traveler_by_station* current_station;
     struct nb_traveler_by_station* new_station;
@@ -507,7 +516,7 @@ void disable_traveler(int id_traveler){
     }
 }
 
-//Réduit le nombre de voyageur dans la station de départ et la destination de 1 dans la station de destination
+//Réduit le nombre de voyageur dans la station de départ et d'arriver
 void decrement_station(int station_pop, int station_dest){
     struct nb_traveler_by_station* station;
     station = list_nb_station;
@@ -530,7 +539,7 @@ void decrement_station(int station_pop, int station_dest){
     }
     return;
 }
-
+//Renvoie 1 si le bus avec l'id id_bus appartient à l'IA
 int is_my_bus(int id_bus){
     struct bus* current_bus = list_bus;
     while ( current_bus != NULL && current_bus->next != NULL && current_bus->id != id_bus){
@@ -541,7 +550,7 @@ int is_my_bus(int id_bus){
     }
     return 0;
 }
-
+//Retire le voyageur avec l'id id_traveler de toutes les listes chaînées
 void bye_traveler(int id_traveler){
     if( is_my_traveler(id_traveler) == 0 )return;
     struct my_traveler* current_traveler  = list_my_traveler;
@@ -566,7 +575,7 @@ void bye_traveler(int id_traveler){
     }
     //free(current_traveler);
 }
-
+//Renvoie si 1 le voyageur appartient à l'IA et 0 sinon
 int is_my_traveler(int id_traveler){
     struct my_traveler* current_traveler;
     current_traveler = list_my_traveler;
@@ -578,9 +587,7 @@ int is_my_traveler(int id_traveler){
     if(current_traveler->id == id_traveler)return 1;
     return 0;
 }
-
-
-
+//Met à 1 le flag pour dire qu'un bus va dans cette station
 void disable_station(int station){
     struct nb_traveler_by_station* current_station = list_nb_station;
     if(current_station == NULL)return;
@@ -590,7 +597,7 @@ void disable_station(int station){
     current_station->bus_go_to = 1;
     return;
 }
-
+//Met à 0 le flag pour dire que la station est disponible pour y aller
 void able_station(int station){
     struct nb_traveler_by_station* current_station = list_nb_station;
     if(current_station == NULL)return;
@@ -601,7 +608,7 @@ void able_station(int station){
     current_station->bus_go_to = 0;
     return;
 }
-
+//Renvoie 0 ou - si le bus est disponible (s'il n'est pas en déplacement) et strictement + que 0 sinon 
 int is_available_bus(struct bus* bus){
     if(bus->busy <= 0)return bus->busy;
     int bus_destination = bus->destination;
@@ -616,7 +623,7 @@ int is_available_bus(struct bus* bus){
     }
     return bus->busy;
 }
-
+//Ajoute un voyageur à un bus dans la liste list_my_traveler possédant tous les voyageurs de l'IA
 void add_traveler_to_bus(int idt,int idb){
     struct my_traveler* traveler = list_my_traveler;
     int idd;
@@ -636,7 +643,7 @@ void add_traveler_to_bus(int idt,int idb){
     }
     return;
 }
-
+//Renvoie la destination d'un voyageur
 int get_destination_by_traveler(int id_traveler){
     struct traveler* current_traveler = list_traveler;
     while(current_traveler->id_traveler != id_traveler){
@@ -644,7 +651,7 @@ int get_destination_by_traveler(int id_traveler){
     }
     return current_traveler->id_station_dest;
 }
-
+//Récupère les infos du premier tour
 void get_first_info(){
     int ID,X,Y,K;
     for(int i = 0 ; i < 3 ; i++ ){
@@ -653,7 +660,7 @@ void get_first_info(){
     }
     return;
 }
-
+//Récupère les informations lié aux joueurs
 void update_player(struct state_upgrade* s_upgrade, int nb_joueur){
     int j,m,usb,usp,uct,end;
     for(int i = 0 ; i < nb_joueur ; i++){//Informations sur tous les joueurs
@@ -671,6 +678,7 @@ void update_player(struct state_upgrade* s_upgrade, int nb_joueur){
         } 
     }
 }
+//Récupère les informations lié aux stations
 void update_station(){
     int ID,X,Y,K,ns;
     scanf("%d",&ns);//ns variable qui sert à savoir si une station a été créée
@@ -679,6 +687,7 @@ void update_station(){
         add_station(ID, K, X, Y);
     }
 }
+//Récupère les informations lié aux bus
 void update_bus(struct state_upgrade* s_upgrade){
     int nbus,ID,X,Y,A,S,j;
     scanf("%d",&nbus);//La variable nbus permet de savoir combien de bus sont actuellement en partie
@@ -689,6 +698,7 @@ void update_bus(struct state_upgrade* s_upgrade){
         }
     }
 }
+//Récupère les informations lié aux nouveaux voyageurs
 void update_new_traveler(int nt){
     int idt, ids1, ids2;
     for(int i=0 ; i < nt ; i++){
@@ -697,9 +707,8 @@ void update_new_traveler(int nt){
         increment_station(ids1,ids2);
     }
 }
-
+//Récupère les informations lié aux voyageurs montant dans un bus
 void update_traveler_go_in_bus(int bt){
-//Informations des voyageurs montés dans un bus
     int idt,idb;
     for(int i=0; i < bt ; i++){
         scanf("%d %d",&idt, &idb);
@@ -709,14 +718,15 @@ void update_traveler_go_in_bus(int bt){
         }
     }
 }
+//Récupère les informations lié aux voyageurs descandant d'un bus
 void update_traveler_go_out_bus(int dt){
-//Information des voyageurs étant descendu d'un bus
     int idt;
     for(int i=0; i < dt ; i++){
         scanf("%d",&idt);
         bye_traveler(idt);
     }
 }
+//Récupère les informations du jeu (les infos de de chaque tour)
 void get_infos(struct state_upgrade* s_upgrade, int nb_joueur){
     int nt, bt, dt;
     update_player(s_upgrade,nb_joueur);
@@ -727,7 +737,7 @@ void get_infos(struct state_upgrade* s_upgrade, int nb_joueur){
     update_traveler_go_in_bus(bt);
     update_traveler_go_out_bus(dt);      
 }
-
+//Gère les améliorations de l'IA, si l'IA doit acheter ou non une amélioration
 void buy_upgrade(struct state_upgrade* s_upgrade){
     if(s_upgrade->nb_bus < ( MAX_NB_BUS-1 ) && s_upgrade->money >= PRICE_BUS){
         buy_bus();
@@ -743,13 +753,14 @@ void buy_upgrade(struct state_upgrade* s_upgrade){
         s_upgrade->money = s_upgrade->money - 200;
     }
 }
-
+//Renvoie la station la plus proche d'un bus s'il contient des voyageurs sinon -1
+//La station fait parti des destinations des voyageurs du bus
 int deliver_traveler(struct bus* bus){
     int best_station = -1;
     if(list_my_traveler != NULL)best_station = search_station_by_location(bus);
     return best_station;
 }
-
+//Renvoie combien de voyageurs d'un bus id_bus vont à une destination id_destination
 int count_dest_by_dest_and_by_bus( int id_bus,int id_destination){
     struct my_traveler* current_traveler = list_my_traveler;
     int count = 0;
@@ -761,7 +772,7 @@ int count_dest_by_dest_and_by_bus( int id_bus,int id_destination){
     }
     return count;
 }
-
+//Renvoie le nombre de voyageurs d'un bus avec l'id id_bus
 int count_traveler_by_bus( int id_bus ){
     struct my_traveler* current_traveler = list_my_traveler;
     int count = 0;
@@ -773,7 +784,7 @@ int count_traveler_by_bus( int id_bus ){
     }
     return count;
 }
-
+//Libère la mémoire lié à la liste chaînée list_traveler
 void free_traveler(){
     struct traveler* c_traveler = list_traveler;
     struct traveler* p_traveler;
@@ -783,6 +794,7 @@ void free_traveler(){
         free(p_traveler);
     }
 }
+//Libère la mémoire lié à la liste chaînée list_bus
 void free_bus(){
     struct bus* c_bus = list_bus;
     struct bus* p_bus;
@@ -792,6 +804,7 @@ void free_bus(){
         free(p_bus);
     }
 }
+//Libère la mémoire lié à la liste chaînée list_my_traveler
 void free_my_traveler(){
     struct my_traveler* c_traveler = list_my_traveler;
     struct my_traveler* p_traveler;
@@ -801,6 +814,7 @@ void free_my_traveler(){
         free(p_traveler);
     }
 }
+//Libère la mémoire lié à la liste chaînée list_station
 void free_station(){
     struct station* c_station = list_station;
     struct station* p_station;
@@ -810,6 +824,7 @@ void free_station(){
         free(p_station);
     }
 }
+//Libère la mémoire lié à la liste chaînée list_nb_station
 void free_nb_station(){
     struct nb_traveler_by_station* c_station = list_nb_station;
     struct nb_traveler_by_station* p_station;
@@ -819,6 +834,7 @@ void free_nb_station(){
         free(p_station);
     }
 }
+//Libère la mémoire lié à la liste chaînée list_player
 void free_player(){
     struct player* c_player = list_player;
     struct player* p_player;
@@ -828,7 +844,7 @@ void free_player(){
         free(p_player);
     }
 }
-
+//Appel toutes les fonctions pour libérer la mémoire en fin de partie
 void game_over(){
     free_traveler();
     free_bus();
